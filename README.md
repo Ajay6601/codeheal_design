@@ -2,7 +2,7 @@
 
 Autonomous bug detection, diagnosis, and repair agent for Python codebases.
 
-CodeHeal ingests a Python repository, detects bugs across 12 pattern classes using AST analysis and LLM reasoning, traces root causes through cross-file dependency graphs, generates verified fixes with explainable repair reports, and applies them directly — creating a git branch with a structured commit.
+CodeHeal ingests a Python repository, detects bugs across 12 pattern classes using AST analysis and LLM reasoning, traces root causes through cross-file dependency graphs, generates verified fixes with explainable repair reports, and applies them directly creating a git branch with a structured commit.
 
 Tested on production codebases: [httpx](https://github.com/encode/httpx) (16 fixes, $0.003), [click](https://github.com/pallets/click) (15 fixes, $0.001).
 
@@ -51,26 +51,26 @@ Codebase → Ingest → Detect → Route → Diagnose → Fix → Guardrails →
 
 Not every bug needs an LLM. CodeHeal routes each bug to the cheapest fix path that works.
 
-**Tier 1 — AST rules (zero cost):** Unused imports, unused variables, bare except clauses, mutable default arguments, unreachable code, missing return statements, resource leaks. Detection is pattern matching on the AST. Fixes are deterministic transforms. Handles 50-70% of all bugs.
+**Tier 1 : AST rules (zero cost):** Unused imports, unused variables, bare except clauses, mutable default arguments, unreachable code, missing return statements, resource leaks. Detection is pattern matching on the AST. Fixes are deterministic transforms. Handles 50-70% of all bugs.
 
-**Tier 2 — Cached patterns (near-zero cost):** When the pattern memory has a high-confidence match from a previous run, skip the LLM and apply the stored fix template. Gets faster over time.
+**Tier 2 : Cached patterns (near-zero cost):** When the pattern memory has a high-confidence match from a previous run, skip the LLM and apply the stored fix template. Gets faster over time.
 
-**Tier 3 — Full LLM (pay-per-bug):** Type mismatches, deprecated APIs, missing null checks, complex resource leaks. LLM diagnoses root cause with causal chains and generates a fix with rationale. ~$0.003 per bug with gpt-4o-mini.
+**Tier 3 : Full LLM (pay-per-bug):** Type mismatches, deprecated APIs, missing null checks, complex resource leaks. LLM diagnoses root cause with causal chains and generates a fix with rationale. ~$0.003 per bug with gpt-4o-mini.
 
 ### Guardrails
 
 Every fix passes through four checks before it can be applied:
 
-1. **Syntax validation** — `ast.parse()` on the patched file
-2. **Scope check** — fix must only touch code near the bug location
-3. **Diff size limit** — no fix changes more than 20 lines
-4. **Test runner** — runs pytest on affected test files; rejects fixes that cause regressions
+1. **Syntax validation** `ast.parse()` on the patched file
+2. **Scope check** fix must only touch code near the bug location
+3. **Diff size limit** no fix changes more than 20 lines
+4. **Test runner** runs pytest on affected test files; rejects fixes that cause regressions
 
 On Click, 9 fixes were correctly rejected because they broke tests. Zero bad fixes shipped.
 
 ### Pattern Memory
 
-After every successful fix, CodeHeal extracts a structured pattern and stores it. On subsequent runs — even on different repos — matching patterns boost detection confidence and skip expensive LLM calls.
+After every successful fix, CodeHeal extracts a structured pattern and stores it. On subsequent runs even on different repos matching patterns boost detection confidence and skip expensive LLM calls.
 
 ```
 120 patterns stored after scanning httpx + click
@@ -135,61 +135,6 @@ cd dashboard && npm install && npm run dev
 
 The dashboard shows live scan progress, issue list with diff viewer, confidence breakdowns, guardrail results, pattern memory, and full scan logs. Supports both Tier 1 and LLM modes from the UI.
 
----
-
-## Architecture
-
-```
-codeheal/
-├── main.py                     # CLI entry point
-├── config.py                   # Thresholds, budgets, routing rules
-├── orchestrator.py             # LangGraph agent pipeline
-├── server.py                   # FastAPI backend for dashboard
-│
-├── ingestion/
-│   ├── parser.py               # Python AST parsing
-│   └── graph_builder.py        # Import + call graph construction
-│
-├── detection/
-│   ├── ast_rules.py            # Tier 1: 6 deterministic detectors
-│   ├── semantic.py             # Tier 2/3: LLM + heuristic detection
-│   └── detector.py             # Detection coordinator + dedup
-│
-├── diagnosis/
-│   └── diagnoser.py            # Root cause tracing with cross-file context
-│
-├── fix_generation/
-│   ├── templates.py            # Tier 1/2: AST transforms + cached fixes
-│   ├── llm_fixer.py            # Tier 3: LLM-powered fix generation
-│   └── generator.py            # Fix coordinator with retry logic
-│
-├── guardrails/
-│   └── gate.py                 # Syntax, scope, diff size, test runner
-│
-├── confidence/
-│   └── scorer.py               # 4-dimensional scoring + decision gate
-│
-├── explanation/
-│   └── reporter.py             # Structured repair reports
-│
-├── memory/
-│   └── pattern_store.py        # JSON-backed pattern learning
-│
-├── evaluation/
-│   └── evaluator.py            # Per-stage, per-class, cost, regression metrics
-│
-├── routing/
-│   └── router.py               # Three-tier cost-aware routing
-│
-├── utils/
-│   ├── llm_client.py           # Budget-enforced API wrapper
-│   └── cost_tracker.py         # Per-run cost + latency tracking
-│
-└── dashboard/                  # React frontend (Vite + Inter + JetBrains Mono)
-    └── src/App.jsx             # Live backend-driven dashboard
-```
-
----
 
 ## Detection Classes
 
@@ -225,21 +170,6 @@ python -m codeheal.main --repo tests/click_test/src/click --apply
 cd tests/httpx_test && git diff original codeheal/fixes --stat
 ```
 
----
-
-## Configuration
-
-Create `.codehealignore` in the repo root to exclude files:
-
-```
-# Skip test files
-tests/*
-test_*.py
-
-# Skip generated code
-*_pb2.py
-migrations/*
-```
 
 ---
 
