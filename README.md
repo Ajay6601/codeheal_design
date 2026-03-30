@@ -175,12 +175,12 @@ cd tests/httpx_test && git diff original codeheal/fixes --stat
 
 ## Tech Stack
 
-- **LangGraph** — Agent orchestration with conditional routing
-- **Python AST** — Deterministic code parsing and analysis
-- **OpenAI API** — LLM diagnosis and fix generation (gpt-4o-mini)
-- **FastAPI** — Dashboard backend with live progress streaming
-- **React + Vite** — Frontend dashboard (Inter + JetBrains Mono)
-- **Rich** — Colored CLI output
+- **LangGraph** Agent orchestration with conditional routing
+- **Python AST** Deterministic code parsing and analysis
+- **OpenAI API** LLM diagnosis and fix generation (gpt-4o-mini)
+- **FastAPI** Dashboard backend with live progress streaming
+- **React + Vite** Frontend dashboard (Inter + JetBrains Mono)
+- **Rich** Colored CLI output
 
 ---
 
